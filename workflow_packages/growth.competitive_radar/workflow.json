@@ -1,0 +1,140 @@
+{
+    "package_format": "tin-workflow-package-v1",
+    "definition": {
+        "key": "growth.competitive_radar",
+        "version": "1.0.0",
+        "title": "Competitive Intelligence + Warm Prospect Radar",
+        "description": "Listens for active complaints, negative competitor reviews, and unanswered questions, matching them against your core features to generate high-intent outreach prospects and log product gaps.",
+        "executor": "codex.procedure",
+        "kind": "workflow",
+        "schedule_modes": [
+            "on_demand",
+            "weekly"
+        ],
+        "x-tin-schedule-intent": "Monday 6am",
+        "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "competitors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                    },
+                    "minItems": 1,
+                    "maxItems": 5,
+                    "title": "Competitor Names",
+                    "description": "Up to 5 competitor names to monitor for negative reviews and trigger events."
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                    },
+                    "minItems": 1,
+                    "maxItems": 5,
+                    "title": "Problem Keywords",
+                    "description": "3 to 5 keywords describing the problem you solve in plain language."
+                },
+                "core_features": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "minLength": 5,
+                        "maxLength": 200
+                    },
+                    "minItems": 1,
+                    "maxItems": 10,
+                    "title": "Core Features",
+                    "description": "Your core features listed in plain language (e.g., 'onboarding takes under 20 minutes'). Used for feature matching."
+                },
+                "icp": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500,
+                    "title": "Ideal Customer Profile",
+                    "description": "Industry tags, company size range, and job titles of people who feel the problem most.",
+                    "x-tin-ui": {
+                        "control": "textarea",
+                        "order": 40
+                    }
+                },
+                "known_weaknesses": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "default": "",
+                    "title": "Known Weaknesses",
+                    "description": "Private list of your product's weaknesses. (Leave blank to disable the 'Watch Your Own Back' section entirely.)",
+                    "x-tin-ui": {
+                        "control": "textarea",
+                        "order": 50
+                    }
+                },
+                "build_signal_threshold": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50,
+                    "default": 5,
+                    "title": "Build Signal Threshold",
+                    "description": "How many times a gap needs to appear before it gets flagged as a build priority."
+                },
+                "historical_gaps": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "pattern": "^.+: [0-9]+$"
+                    },
+                    "default": [],
+                    "title": "Historical Gaps",
+                    "description": "Cumulative tracker of previously logged gaps (e.g. 'Notion Integration: 4')."
+                },
+                "recency_days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 90,
+                    "default": 14,
+                    "title": "Recency Days",
+                    "description": "Discard signals older than this many days."
+                }
+            },
+            "required": [
+                "project_id",
+                "competitors",
+                "keywords",
+                "core_features",
+                "icp"
+            ]
+        },
+        "procedure": {
+            "prompt_path": "PROMPT.md",
+            "skills_path": "skills",
+            "skill_files": [
+                "skills/competitive-radar/SKILL.md"
+            ],
+            "entry_skill": "competitive-radar",
+            "workspace": {
+                "kind": "project.state"
+            },
+            "sandbox": {
+                "profile": "isolated",
+                "egress": "fenced",
+                "timeout_seconds": 900
+            },
+            "output": {
+                "kind": "project.artifact",
+                "path": "reports/COMPETITIVE_RADAR.md",
+                "media_type": "text/markdown",
+                "max_bytes": 64000
+            }
+        }
+    }
+}
